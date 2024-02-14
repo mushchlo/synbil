@@ -205,17 +205,47 @@ def _ (_: deliminated Identifier ',' '()' ')')
 // TODOO: Rational number
 // TODOO: make Rational fast with interaction nets
 
-
+// yay
 True = true
-_ * _ : Nat -> Nat -> Nat
+
 // n: Nat, m: Nat (we dont have numbers rn, so imma make some rq)
-type Nat =
-    Zero
-     | Succ (\n -> \(f, x) (f (n f x) x)
-     // n + 1 looks like \(f, x) (f (n f x) x). Church numerals.
+type Nat = Zero | Succ
+
+// Applies f 0 times.
+Zero f x = x
+
+// Applies f n times.
+// n + 1 looks like \(f, x) (f (n f x) x). Church numerals.
+Succ n = \(f, x) (f (n f x) x)
+
+// TODOO: macro that turns numeric literal into canonical form in interaction nets
+
+_ * _ : Nat -> Nat -> Nat
+a * b = 
 
 
--- IGNORE BELOW: Historical
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/// LINE OF PROFESSIONALITY -- ANYTHING BEYOND HERE IS VERY WIP AND SHOULD BE CONSIDERED CHICKENSCRATCH
+
+
+
+
 
 
 
@@ -239,24 +269,6 @@ nil = nil#
 
 // TODO: Should I make a vscode extension that can tell which macros are
 // comments / how macros should be highlighted generally ? hmm
-
-
-/// LINE OF PROFESSIONALITY -- ANYTHING BEYOND HERE IS VERY WIP AND SHOULD BE CONSIDERED CHICKENSCRATCH
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-    
 
 // defining local variable declaration for ourselves
 // Note that macros beginning with capital letters are macro types, they represent a type
