@@ -1,0 +1,277 @@
+#defmacro (// {not-char '\n'} '\n' {_: Unparsed})
+    \rest -> rest
+#defmacro ({many `('\n' {many {spaces}} '\n' {_})})
+
+// Sorry, that had to be first, it does some barebones stuff.
+// Line 1 says that // to \n is a comment. Line 2 says that blank lines are meaningless
+//
+// This file builds a syntax from S-Expressions, with the variant
+// expression type {_}, which represents macro application.
+// 
+// This all reduces to a pair (a, b), where a is a lambda, and 
+// b is the type of that lambda.
+// 
+// Lambdas look like this:
+// \(a, b) -> a
+// this is True = λλ1.
+// Uncurrying is allowed syntactically for brevity of lambdas, but not when applying.
+//
+// Macros look like this:
+// #defmacro macro_name macro_def
+// where macro_name is some sort of identifier, possibly involving arguments to the macro,
+// or calls to metamacros.
+//
+// Macro applications with args a, b look like this:
+// {macro_name a b}
+// which is itself a macro for
+// (macro_name `a `b)
+// which just means that a, b are quoted, or turned into a tree representing their syntax.
+//
+// Quoted values are much easier to use for declarative macros, so this is basically a
+// comptime lisp used to generate embeddings for languages into the lambda calculus. Trouble
+// is, lambda calculus is slow. So we ditch the semantics of lambda calculus for one edge-case:
+// duplicating a duplicated value. Example:
+// \x -> (
+//    (x x) (\(f, x) -> f (f x))
+// )
+// The explanation for this is that we can use the semantics of interaction nets if we accept that
+// the duplication of the result of a duplicated duplication cannot be applied to a duplicate.
+//
+// By using the semantics of the interaction net, the output code can automatically be run in parallel,
+// on both CPU and GPU. I suspect that writing programs in a heavily different style could make the
+// GPU execution far closer to native capabilities than HVM is currently.
+
+
+// TODO: finish intro
+
+// -------- functional primitives --------
+(id x) = x
+_._ : ((b -> c), (a -> b)) -> (a -> c)
+
+// Composition
+// f.g (x) = f (g (x))
+(f . g) = \x (f (g x))
+
+
+// Church booleans and their operations
+(true  : T, T -> T)
+(false : T, T -> T)
+(true  a b) = a
+(false a b) = b
+
+(not : Bool, Bool -> Bool)
+(not a) =
+    \(t, f) ->  // This is a bool, so it can take in two aguments true and false and pass
+        (a f t) // them down to lower fns. Done here to make Not fuse.
+// Lets check (not . not).
+// \x ((\(a, t, f) -> (a f t)) ((\(a, t, f) -> (a f t)) x))
+// = \x (\(t, f) -> (((\(a, t, f) -> (a f t)) x) f t))
+// = \x (\(t, f) -> ((\(t, f) -> (x f t)) f t))
+// = \x (\(t, f) -> x t f)
+// = \x (Eta `2 x)
+// = \x x                       -- By the axiom of eta-equivalence
+// = id                         -- Not (Not x) is id x. nice :D
+
+
+_and_ : Bool, Bool -> Bool
+(false and _) = false
+(_ and false) = false
+(a and b) = true
+
+_or_ : Bool, Bool -> Bool
+(true or _) = true
+(_ or true) = true
+(a or b) = false
+
+// slow !! >:/
+// compiler should be made at u for this tbh
+_xor_ : Bool, Bool -> Bool
+(a xor b) =
+    (a
+        (not b)
+        b)
+
+
+// Eta expansion. One eta expansion wraps a lambda around an expression and immediately
+// applies the parameter to it.
+// e -> \x# (e x) 
+//
+// or in js style,
+//
+// function eta_expand(f) {
+//    return x => f(x);
+// }
+// The returned value behaves the same as f, but has a different AST. To consider them
+// equal is to use the axiom of eta-equivalence, which we will do in cases where we
+// do not use reflection.
+
+// Eta-expanding 0 times is identity
+{#defmacro (eta-expand 0 f) f}
+
+// TODO: match
+// TODO: |>
+
+// Putting `!` after a new variable name (one in a lambda) causes it to be a generated name,
+// meaning it will be some fresh name, unique from the rest of the names in the system. This
+// is a feature provided by the #defmacro macro
+{#defmacro (eta-expand _ _)
+    \(n, f) (
+        match n {
+        0: f
+        n: eta-expand n-1 f |> f
+        }
+        let case_n_minus_1 = (eta-expand (pred n) f)
+        \x! (f (case_n_minus_1 x))
+    )}
+
+// A union has multiple cases with differing values.
+// In the case of Lists:
+// union 2
+//  (\x, xs, c -> c x xs)
+{#defmacro (union (_: Nat))
+    \n -> (
+        {choosing_fn n}
+    )}
+
+
+// Arbitrary data in a sized container
+Vec : {Nat}, {Type 0} -> {Type 0}
+Vec 0 = Nil
+// A vector with n elements takes n args to initialize, then allows indexing
+Vec n = 
+
+// Ideally we'd have (in Haskell)
+// data List 't = t (List 't) | Nil
+// But we don't have a data macro. Instead we make a union macro
+    union 2
+        (\t -> t (List t))
+        ()
+
+// Destructors
+hd (Cons x _) = x
+tl (Cons _ xs) = xs
+hd (Nil) = Nil
+tl (Nil) = Nil
+
+// Cons (some list)
+(x, xs) = Cons x xs
+// Nil (empty list)
+nil = nil#
+
+
+// Testing Not^2 False
+AssertEq
+    (2 Not False)
+    (False)
+// (Not (Not False))
+// (\(a, t,f) -> (a f t)) ((\(a, t,f) -> (a f t)) False)
+// remember, simultaneous evaluation
+// \(t,f) -> (\(t,f) -> False f t)
+// \(t,f) -> (\(t,f) -> t)
+// \(t,f) -> True
+// ((\(t,f) -> (\(t,f) -> (t) f t)) ) -- by definition of true, t f t = f
+// (\(t, f -> \(t, f)))
+
+
+
+
+
+
+// Metamacros section
+#defmacro (not-char (c : CharLit)) (\ch -> (ch == c))
+
+// Tuples
+// Optional spacing before and after whole tuple, and comma
+// a, b = Cons a b = \c (c a b)
+#defmacro {canspace ((_: Expr) {canspace ,} (_: Expr))}
+    (\(c, a, b) c a b)
+
+nil = nil#
+// chloe's thinking here
+// Char, Char, Char = Char, (Char, (Char, nil))
+//                  = 3 (\c -> (Cons Char c)) nil
+//                  = 3 (Cons Char) nil
+//                  ?=? 3 (, Char) nil
+
+
+// TODO: Should I make a vscode extension that can tell which macros are
+// comments / how macros should be highlighted generally ? hmm
+
+
+/// LINE OF PROFESSIONALITY -- ANYTHING BEYOND HERE IS VERY WIP AND SHOULD BE CONSIDERED CHICKENSCRATCH
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    
+
+// defining local variable declaration for ourselves
+// Note that macros beginning with capital letters are macro types, they represent a type
+// of thing that they can parse. This is frequently distinct from the type of the expression contained in
+// the source code.
+#defmacro (let {canspace Identifier} )
+
+#defmacro ({_: Identifier} = {_: Expr} '\n' {_: Unparsed})
+    \(`id, e, rest) -> (
+        \(var#) -> (
+
+        )
+    )
+
+let id = @x x
+filter cons =
+
+
+
+
+
+#defmacro (array 0) Unit
+#defmacro (array n) (array-helper n)
+
+#defmacro (array-helper 0) Unit
+#defmacro (array-helper n) ( eta-expand n (Array|n| ))
+
+
+// canspace is a metamacro that generates a pattern representing optional
+// spacing around syntax elements
+#defmacro (|canspace (_: PyExpr)*(_: PyExpr)|)
+
+// def x(arg, arg2, arg3):\n code
+// Tabs n is a type that depends on a macro-eval-time value. Tabs n represents
+// n tabs, and n is now declared as a variable for the scope of this macro. This can be hard
+// to wrap your head around if you haven't worked with dependent types before.
+#defmacro ((_ : Tabs n) def |canspace (_:PyId) (( _:PyId ))|)
+    (@(tabs, [args]))
+#defmacro True (quote \a \b a)
+#defmacro False (quote \a \b a)
+
+// remember that spaces are only for separation of lisp arguments, so unless quoted
+// more spaces do not affect the shape of the macro
+#defmacro ([ (_: PyExpr) for (_: PyIdentifier) in (_: PyExpr) if (_: PyExpr) ])
+    (fn (exp, el_id, arr, cond)
+        (let fmap = (map (@$el_id $exp)) . (filter $cond);
+            fmap arr))
+
+#defmacro (def )
+
+// start of list
+#defmacro ([_, _]) (@a @b [,b])
+// in list / end of list
+#defmacro ([, _])
+// in list / end of list
+
+def c(x):
+    return True
+
+a = [2, 3, 4, 17]
+print [2*x for x in a if c(x)]
