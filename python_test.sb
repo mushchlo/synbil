@@ -1,6 +1,7 @@
-#defmacro (// {not-char '\n'} '\n' {_: Unparsed})
-    \rest -> rest
-#defmacro ({many `('\n' {many {spaces}} '\n' {_})})
+{#defmacro (// {many {not-char '\n'}} '\n' {_: Unparsed})}
+    (\rest -> rest)
+{#defmacro ({many `('\n' {many {spaces}} '\n' {_})})
+    ()}
 
 // Sorry, that had to be first, it does some barebones stuff.
 // Line 1 says that // to \n is a comment. Line 2 says that blank lines are meaningless
@@ -46,34 +47,38 @@
 
 // -------- functional primitives --------
 (id x) = x
-_._ : ((b -> c), (a -> b)) -> (a -> c)
+_ . _ : ((b -> c), (a -> b)) -> (a -> c)
 
 // Composition
 // f.g (x) = f (g (x))
-(f . g) = \x (f (g x))
+f . g = \x (f (g x))
 
 
 // Church booleans and their operations
 (true  : T, T -> T)
-(false : T, T -> T)
 (true  a b) = a
+
+(false : T, T -> T)
 (false a b) = b
 
 (not : Bool, Bool -> Bool)
 (not a) =
     \(t, f) ->  // This is a bool, so it can take in two aguments true and false and pass
         (a f t) // them down to lower fns. Done here to make Not fuse.
-// Lets check (not . not).
+// Lets check (not . not) to see if it fuses.
 // \x ((\(a, t, f) -> (a f t)) ((\(a, t, f) -> (a f t)) x))
 // = \x (\(t, f) -> (((\(a, t, f) -> (a f t)) x) f t))
 // = \x (\(t, f) -> ((\(t, f) -> (x f t)) f t))
 // = \x (\(t, f) -> x t f)
 // = \x (Eta `2 x)
 // = \x x                       -- By the axiom of eta-equivalence
-// = id                         -- Not (Not x) is id x. nice :D
+// = id                         -- Not (Not x) fuses. nice :D
 
 
 _and_ : Bool, Bool -> Bool
+// TODO: with hvm's execution model, we have no guarantee that pattern matching like this
+// would be both parallel, though it would be eventually short-circuiting. Check that this is true,
+// then scheme.
 (false and _) = false
 (_ and false) = false
 (a and b) = true
@@ -108,8 +113,6 @@ _xor_ : Bool, Bool -> Bool
 // Eta-expanding 0 times is identity
 {#defmacro (eta-expand 0 f) f}
 
-// TODO: match
-// TODO: |>
 
 // Putting `!` after a new variable name (one in a lambda) causes it to be a generated name,
 // meaning it will be some fresh name, unique from the rest of the names in the system. This
@@ -220,9 +223,20 @@ Succ n = \(f, x) (f (n f x) x)
 
 // TODOO: macro that turns numeric literal into canonical form in interaction nets
 
-_ * _ : Nat -> Nat -> Nat
-a * b = 
 
+_+_ : (Nat n), (Nat m) -> (Nat (n + m))
+m + n = n Succ m
+
+_ * _ : Nat -> Nat -> Nat
+a * b = a (Add b) Zero
+
+_ ^ _ : Nat -> Nat -> Nat
+a ^ b = m (Mul n) 
+
+_ - _ : Nat -> Nat -> Nat
+_ - _ =
+_ / _ : Nat -> Nat -> Nat
+_ / _ =
 
 
 
@@ -245,26 +259,53 @@ a * b =
 
 
 
+// TODO: match
+// TODO: |>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// OLD STUFF
 
 
 
 
 
 // Metamacros section
-#defmacro (not-char (c : CharLit)) (\ch -> (ch == c))
+{#defmacro (not-char (c : CharLit)) (\ch -> (ch == c))}
 
 // Tuples
 // Optional spacing before and after whole tuple, and comma
 // a, b = Cons a b = \c (c a b)
-#defmacro {canspace ((_: Expr) {canspace ,} (_: Expr))}
-    (\(c, a, b) c a b)
+{#defmacro {canspace ((_: Expr) {canspace ,} (_: Expr))}
+    (\(c, a, b) c a b)}
 
 nil = nil#
 // chloe's thinking here
 // Char, Char, Char = Char, (Char, (Char, nil))
 //                  = 3 (\c -> (Cons Char c)) nil
 //                  = 3 (Cons Char) nil
-//                  ?=? 3 (, Char) nil
+//                 ?=? 3 (, Char) nil
 
 
 // TODO: Should I make a vscode extension that can tell which macros are
