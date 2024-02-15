@@ -1,0 +1,28 @@
+// SKI
+i x   = x
+k x u = x
+s x y z = x z (y z)
+// experiments in making more linear
+//    \g, half -> g (C S (C square A) half) (K x) (Q f))
+//    \g, half -> g (S ((C square A) half) (K x) (Q f))
+//    \g, half -> g (S ((square >> A) half) (K x) (Q f))
+//    \g, half -> g (S (A (square half)) (K x) (Q f))
+//    \g, half -> g (square half (Q f) x)
+//    \g, half -> g (S (A (square half)) (K x) (Q f))
+//    \g, half -> g (S (A (square half)) (K x) (Q f))
+
+
+
+// cons = _,_
+// deconstructors
+// nil declared by unique copattern
+hd nil# = nil
+tl nil = nil
+
+hd x,xs = x
+tl x,xs = xs
+
+// Functional squaring
+// turns 4 f into (f.f) (f.f), an optimization to make
+// algorithms faster on the interaction net.
+square (n: Scott) f x 

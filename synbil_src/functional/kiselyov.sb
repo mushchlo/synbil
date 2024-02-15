@@ -1,0 +1,22 @@
+// paraphrasing http://www-cs-students.stanford.edu/~blynn/lambda/kiselyov.html
+
+B a b c = a (b c)
+R a b c = b c a
+S a b c = a c (b c)
+
+// Let p, q be combinators.
+// Challenge: we let d be [eta-expanded](link to eta-expansion wiki page) p m times, and q n times.
+// Let m = 3, n = 2.
+// d = (\0, 1, 2 ... n (p 2 1 0)) (\0, 1 ... n (q 1 0))
+// What is d ?
+// Let n |= d denote d eta-expanded n times.
+// 3 |= d = \0, 1, 2 (d 2 1 0)
+//
+// We can restate our problem as follows: 
+// We define Π recursively by:
+//          (0 |= c) Π (0 |= d) =                                 c d
+//      (n + 1 |= c) Π (0 |= d) =              (0 |= R d) Π (n |= c)
+//      (0 |= c) Π (m + 1 |= d) =              (0 |= B c) Π (0 |= d)
+//  (n + 1 |= c) Π (m + 1 |= d) =   n |= (0 |= S Π n |= c) Π m |= d
+
+:Pi:

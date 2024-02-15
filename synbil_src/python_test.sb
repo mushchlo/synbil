@@ -1,0 +1,46 @@
+(#defmacro (// {many {not-char '\n'}} '\n' {_: Unparsed})
+    (\rest -> rest))
+(#defmacro ({many `('\n' {many {spaces}} '\n' {_})})
+    ())
+
+// Sorry, that had to be first, it does some barebones stuff.
+// Line 1 says that // to \n is a comment. Line 2 says that blank lines are meaningless
+//
+// This file builds a syntax from S-Expressions, with the variant
+// expression type {_}, which represents macro application.
+// 
+// This all reduces to a pair (a, b), where a is a lambda, and 
+// b is the type of that lambda.
+// 
+// Lambdas look like this:
+// \a, b -> a
+// this is True = λλ1.
+// Uncurrying is allowed syntactically for brevity of lambdas, but not when applying.
+//
+// Macros look like this:
+// #defmacro macro_name macro_def
+// where macro_name is some sort of identifier, possibly involving arguments to the macro,
+// or calls to metamacros.
+//
+// Macro applications with args a, b look like this:
+// {macro_name a b}
+// which is itself a macro for
+// (macro_name `a `b)
+// which just means that a, b are quoted, or turned into a tree representing their syntax.
+//
+// Quoted values are much easier to use for declarative macros, so this is basically a
+// comptime lisp used to generate embeddings for languages into the lambda calculus. Trouble
+// is, lambda calculus is slow. So we ditch the semantics of lambda calculus for one edge-case:
+// duplicating a duplicated value. Example:
+// \x -> (
+//    (x x) (\f, x -> f (f x))
+// )
+// The explanation for this is that we can use the semantics of interaction nets if we accept that
+// the duplication of the result of a duplicated duplication cannot be applied to a duplicate.
+//
+// By using the semantics of the interaction net, the output code can automatically be run in parallel,
+// on both CPU and GPU. I suspect that writing programs in a heavily different style could make the
+// GPU execution far closer to native capabilities than HVM is currently.
+
+
+// TODO: finish intro

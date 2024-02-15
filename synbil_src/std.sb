@@ -1,0 +1,218 @@
+// -------- functional primitives --------
+(id x) = x
+
+// Composition
+// equivalent to Haskell's `.`
+_ << _ : ((b -> c), (a -> b)) -> (a -> c)
+f << g = \x (f (g x))
+
+
+// Piping
+_ <| _ : (a -> b, a) -> b
+f <| x = (f x)
+
+_ |> _ : (a, a -> b) -> b
+// Equivalent to Haskell's $. this just feels less obtuse.
+_ |> _ : (a, a -> b) -> b
+f |> x = (f x)
+
+
+
+// Church booleans and their operations
+(true  : T, T -> T)
+(true  a b) = a
+
+(false : T, T -> T)
+(false a b) = b
+
+(not : Bool, Bool -> Bool)
+(not a) =
+    \t, f ->  // This is a bool, so it can take in two aguments true and false and pass
+        (a f t) // them down to lower fns. Done here to make Not fuse.
+// Lets check (not << not) to see if it fuses.
+// \x ((\a, t, f -> (a f t)) ((\a, t, f -> (a f t)) x))
+// = \x (\t, f) -> (((\a, t, f) -> (a f t)) x) f t))
+// = \x (\t, f) -> ((\t, f) -> (x f t)) f t))
+// = \x (\t, f) -> x t f)
+// = \x (Eta `2 x)
+// = \x x                       -- By the axiom of eta-equivalence
+// = id                         -- Not (Not x) fuses. nice :D
+
+
+_and_ : Bool, Bool -> Bool
+// TODO: with hvm's execution model, we have no guarantee that pattern matching like this
+// would be both parallel, though it would be eventually short-circuiting. Check that this is true,
+// then scheme.
+(false and _) = false
+(_ and false) = false
+(a and b) = true
+
+_or_ : Bool, Bool -> Bool
+(true or _) = true
+(_ or true) = true
+(a or b) = false
+
+// slow !! >:/
+// compiler should be made at u for this tbh
+_xor_ : Bool, Bool -> Bool
+(a xor b) =
+    (a
+        (not b)
+        b)
+
+
+// Eta expansion. One eta expansion wraps a lambda around an expression and immediately
+// applies the parameter to it.
+// e -> \x# (e x) 
+//
+// or in js style,
+//
+// function eta_expand(f) {
+//    return x => f(x);
+// }
+// The returned value behaves the same as f, but has a different AST. To consider them
+// equal is to use the axiom of eta-equivalence, which we will do in cases where we
+// do not use reflection.
+
+// Eta-expanding 0 times is identity
+eta-expand 0 f = f
+eta-expand (S n) f = \x -> (f (eta-expand n x)
+
+
+// A union has multiple cases with differing values.
+// In the case of Lists:
+// union 2
+//  (\x, xs, c -> c x xs)
+{#defmacro (union (_: Nat))
+    \n -> (
+        {choosing_fn n}
+    )}
+
+
+// Arbitrary data in a sized container
+Vec : {Nat}, {Type 0} -> {Type 0}
+Vec 0 = Nil
+// A vector with n elements takes n args to initialize, then allows indexing
+Vec n = 
+
+// Ideally we'd have (in Haskell)
+// data List 't = t (List 't) | Nil
+// But we don't have a data macro. Instead we make a union macro
+    union 2
+        (\t -> t (List t))
+        ()
+
+// Destructors
+hd (Cons x _) = x
+tl (Cons _ xs) = xs
+hd (Nil) = Nil
+tl (Nil) = Nil
+
+// Cons (some list)
+(x, xs) = Cons x xs
+// Nil (empty list)
+// Putting `#` after a new variable name causes it to be a generated name,
+// meaning it will be some fresh name, unique from the rest of the names in the system. This
+// is a feature provided by the #defmacro macro
+nil# = nil
+
+
+
+// TODOOO
+// def c
+// x
+// --True--
+
+
+
+
+def c(x):
+    return True
+
+a = [2, 3, 4, 17]
+print([2*x for x in a if c(x)])
+
+// In S-Exprs, this is
+(def c (x)
+    (True)
+    (= a (List 2 3 4 5 6 17)
+    (print
+        ([_for_in_if_] 2*x x a (Apply c x))
+    )))
+// Now lets write those functions!
+
+// TODOOO: Identifie
+Apply f xr type
+// TODOOO: deliminated meta-macro
+def _ (_: deliminated Identifier ',' '()' ')')
+
+// TODOO: Complex number
+// TODOO: Rational number
+// TODOO: make Rational fast with interaction nets
+
+// yay
+True = true
+
+// n: Nat, m: Nat (we dont have numbers rn, so imma make some rq)
+type Nat = 0 | Succ
+
+// Applies f 0 times.
+0 f x = x
+
+// Applies f n times.
+// n + 1 looks like \f, x (f (n f x) x). Church numerals.
+Succ n = \f, x (f (n f x) x)
+
+// TODOO: macro that turns numeric literal into canonical form in interaction nets
+
+
+_+_ : (Nat n), (Nat m) -> (Nat (n + m))
+// Apply Succ n times to m
+m + n = n Succ m
+
+// _+_ is O(log_2 n)?
+// If Succ fuses, (Succ . Succ) is the same size as Succ
+
+
+// O(n log2 n)
+_ * _ : Nat -> Nat -> Nat
+// Apply (_ + b) a times to Zero
+a * b = a (_ + b) Zero
+
+K x = \u -> x
+S x y z = (x z) (y z)
+
+
+
+A2 f x y =
+    S f (K y) x
+x = (m . Mul)
+y = K n
+
+
+
+_ ^ _ : Nat -> Nat -> Nat
+// Apply (Mul n) m times to input
+    where fx = (Apply x) . (Apply f)
+            = 
+ C fx = ()
+  ((m . Mul) n) f x or m ((Mul . n) f x)
+a ^ b = \f, x -> m (Mul (n f x)) f x
+
+
+// is it fusible?
+// pred . pred
+// \x -> (pred (pred x))
+// \x -> (pred (pred x))
+
+_ - _ : Number -> Number -> Number
+a - b = `-` a b
+
+// Integer division ?
+
+_ / _ : Number -> Number -> Number
+a / b = `/` a b
+_ - _ : Nat -> Nat -> Nat
+_ - _ =
+_ / _ : Nat -> Nat -> Nat
+_ / _ =
