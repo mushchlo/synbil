@@ -1,0 +1,58 @@
+// All the nice and familiar combinators :)
+
+
+// SKI
+i x   = x
+k x _ = x
+s x y z = x z (y z)
+
+z f = (
+    (\x -> (f (\v -> x x v)))
+    (\x -> (f (\v -> x x v)))
+)
+
+omega f = f f
+Y = TODOO
+
+
+
+
+
+// optimizations of z
+
+//z f = (
+//    f1,f2 = dup f
+//    go g = \x -> g (\v -> x x v)
+//
+//    (go f1)
+//    (go f2)
+//)
+
+
+// go = \\(1 (\((1 1) 0)))
+//  s = 2 0 (1 0)
+
+// (uncurry s) = 1 (0.1) ((0.1) (0.0))
+// flip (uncurry s) = 0 (1.1) ((1.1) (1.0))
+// flip (uncurry shmmm) 
+// flip = \\\ (2 0 1)
+//     s s _ f  = 
+//              = f s (1 s) 
+//              = (1 s) s
+//  s _ _ i
+//          = i 0 (1 0)
+//          = 0 (1 0)
+//          = 
+//  A f x = f x = 1 0 = flip F
+//  F x f = f x = 0 1 = flip A
+//  flip f a b = f b a
+// S ()
+// go = \\(F (\((F 1 1) 0)) 1)
+//
+z f = (
+    f1,f2 = dup f
+    go g = \x -> g (\v -> x x v)
+
+    (go f1)
+    (go f2)
+)

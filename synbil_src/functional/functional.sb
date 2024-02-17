@@ -1,28 +1,50 @@
-// SKI
-i x   = x
-k x u = x
-s x y z = x z (y z)
-// experiments in making more linear
-//    \g, half -> g (C S (C square A) half) (K x) (Q f))
-//    \g, half -> g (S ((C square A) half) (K x) (Q f))
-//    \g, half -> g (S ((square >> A) half) (K x) (Q f))
-//    \g, half -> g (S (A (square half)) (K x) (Q f))
-//    \g, half -> g (square half (Q f) x)
-//    \g, half -> g (S (A (square half)) (K x) (Q f))
-//    \g, half -> g (S (A (square half)) (K x) (Q f))
+public use ufcs
 
+// TODOO: eventually, when we migrate away from ascii, we will have a symbol for this. until then, this.
+f `.` g = \x -> (f x.g)
+
+uncurry 'A 'B 'C :
+    (A -> B -> C) ->
+    ((A, B) -> C)
+uncurry f = \(a, b) -> (f a b)
+
+curry :
+    ((A, B) -> C) ->
+        (A -> B -> C)
+curry f = \a, b (f (a, b))
+// Remember, no parentheses means the comma is syntax sugar for currying.
+//
+// Note that due to the nature of interaction nets, currying in this way
+// (connecting to an ADT wiith partial application) can, when one argument is
+// ready far earlier than another, result in highly eager partial computation.
+// This can be good if you want fast code, but bad if you want to know how long
+// it'll take to run your code.
 
 
 // cons = _,_
 // deconstructors
 // nil declared by unique copattern
-hd nil# = nil
-tl nil = nil
 
-hd x,xs = x
-tl x,xs = xs
+hd #[] = []
+tl [] = []
 
-// Functional squaring
-// turns 4 f into (f.f) (f.f), an optimization to make
-// algorithms faster on the interaction net.
-square (n: Scott) f x 
+// definition of :: operator, cons.
+right-associative ('A) :: (List 'a) -> {A | List A}
+hd x::_ = x
+tl _::xs = xs
+
+self-compose f = \x -> (f (f x))
+
+// square n f x Applies a function f, n times to an input x. n should work for all number types with a concept of halving.
+square
+    (n: impl (Defines { Zero, One, _ % 2 } + Eq + Halfable)) // impl means implements a trait. similar to an interface. You can combine implementations with +
+    (f: 'A -> A) // Backtick declares a new type name
+    (x: A):
+        A
+
+square Zero f x = x
+square One  f x = f x
+
+square n f x = square n.half (f `.` f) x
+
+

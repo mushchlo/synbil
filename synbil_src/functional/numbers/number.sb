@@ -1,0 +1,32 @@
+// Abstractions over numeric objects
+
+
+trait HasZero for Integer I = {
+    zero : I
+}
+
+// Implemented only for integers. Floats cannot be exactly halved.
+trait Halfable for Integer I = {
+   half : I -> I 
+}
+
+
+use functional.numbers.{
+    Peano,
+    Scott,
+    Church
+}
+
+impl Halfable for Scott {
+    half n = n I I n
+}
+
+impl Halfable for Peano {
+    
+}
+
+impl Halfable for Church {
+    half n = (
+        // if n is odd, it should round down.
+    )
+}

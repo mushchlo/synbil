@@ -1,0 +1,9 @@
+Array (t: {Type 0})(n: {impl: Halfable Integer}) 
+Array t 0 = ADT {Unit}
+Array t n = ADT n (K t)
+
+prepend : (Array n T, T) -> Array {n+1} T
+prepend 
+
+append : (Array n T, T) -> Array {n+1} T
+append [] a = 

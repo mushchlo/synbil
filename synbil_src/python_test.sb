@@ -33,7 +33,7 @@
 // is, lambda calculus is slow. So we ditch the semantics of lambda calculus for one edge-case:
 // duplicating a duplicated value. Example:
 // \x -> (
-//    (x x) (\f, x -> f (f x))
+//    (x x) (\f, x -> f (f x)g)
 // )
 // The explanation for this is that we can use the semantics of interaction nets if we accept that
 // the duplication of the result of a duplicated duplication cannot be applied to a duplicate.
