@@ -1,0 +1,63 @@
+log10 : {Integer | Real} -> Real
+floor : Float -> Int
+
+type U = U,
+     I = I,
+     F = F64,
+     B = Bool
+
+
+public {
+// Basic math ops for normal types
+    _+_       : (U, U) -> U,
+    _-_       : (U, U) -> U,
+    _*_       : (U, U) -> U,
+    _//_      : (U, U) -> U,
+    _/_       : (U, U) -> F,
+    _%_       : (U, U) -> U,
+    _!=_      : (U, U) -> U,
+
+    _+_       : (I, I) -> I,
+    _-_       : (I, I) -> I,
+    _*_       : (I, I) -> I,
+    _//_      : (I, I) -> I,
+    _/_       : (I, I) -> I,
+    _%_       : (I, I) -> I,
+    _!=_      : (I, I) -> I,
+
+    _+_       : (F, F)  -> F,
+    _-_       : (F, F)  -> F,
+    _*_       : (F, F)  -> F,
+    _/_       : (F, F)  -> F,
+    _%_       : (F, F)  -> F,
+    _!=_      : (I, I) -> I,
+
+
+
+
+    _<_       : (U,  U) -> B,
+    _<=_      : (U,  U) -> B,
+    _==_      : (U,  U) -> U,
+    _>=_      : (U,  U) -> B,
+    _>_       : (U,  U) -> B,
+
+    _and_     : (B,  B) -> B,
+    _or_      : (B,  B) -> B,
+    not_      : B    -> B,
+
+    floor_    : F    -> U,
+    ceil_     : F    -> F,
+
+    _as-float : U    -> F,
+    _as-float : I    -> F,
+    _as-uint  : F    -> U, // what should behavior be when the float is negative ?
+    _as-int   : F    -> I,
+
+    _as-int   : U    -> I,
+    _as-uint  : I    -> U, // what should behavior be when the int is negative ?
+}
+
+
+
+
+

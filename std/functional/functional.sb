@@ -1,5 +1,8 @@
 public use ufcs
 
+public {uncurry, curry, hd, tl, _::_, [], square}
+
+
 // TODOO: eventually, when we migrate away from ascii, we will have a symbol for this. until then, this.
 f `.` g = \x -> (f x.g)
 
@@ -33,18 +36,16 @@ right-associative ('A) :: (List 'a) -> {A | List A}
 hd x::_ = x
 tl _::xs = xs
 
-self-compose f = \x -> (f (f x))
+self-compose f = x -> f (f x)
 
-// square n f x Applies a function f, n times to an input x. n should work for all number types with a concept of halving.
-square
-    (n: impl (Defines { Zero, One, _ % 2 } + Eq + Halfable)) // impl means implements a trait. similar to an interface. You can combine implementations with +
-    (f: 'A -> A) // Backtick declares a new type name
-    (x: A):
-        A
 
-square Zero f x = x
-square One  f x = f x
-
-square n f x = square n.half (f `.` f) x
+// square n f x : Functional squaring
+/*
+    Behavior: Applies a function f, n times to an input x.
+    Notes:    n can be any number type with a concept of 0, 1, /2 and %2.
+*/
+square 0 f x = x
+square 1 f x = f x
+square n f x = square x%2 f (square n/2 (f `.` f) x)
 
 

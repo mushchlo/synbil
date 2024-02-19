@@ -1,0 +1,18 @@
+// Abstract datatypes
+
+Map : 0..n, 'V -> (i : 0..n -> Maybe 'V)
+Map (k: 0..n) (v: 'V) = (
+    \i -> (if i == k then (some v) else none)
+)
+
+union map1 map2 = 
+
+m = Map 0..n (Type 0)
+
+
+
+(ADT (n: Integer)
+    (t: \(i: {UniquelyMutablyBorrows (m i)}) -> (Type 0)
+    (
+        if 
+    )))

@@ -1,7 +1,11 @@
+// Ideally, full parallelism. Unfortunately....
+from_u64 n =
+    functional.square ()
+
 // - can be O(log_2 n)
 // needs fusible `pred`
 pred : Nat -> Nat
-pred (Succ a) = \f, x -> (a f x)
+pred (Succ a) = f, x -> (a f x)
 
 pred 0 = 0
 pred n f x = extract (n inc (K x))
@@ -21,11 +25,11 @@ pred n f x = extract (value (n-1 f x))
 pred n f x = extract (n (inc f) (K x))
 pred n f x =
     (n
-        (\f, g, h -> ((h . g) f))
+        (f, g, h -> ((h . g) f))
         (K x)
-    ) \u -> u
+    ) u -> u
 
-pred n f x = extract (n (\f, g, h -> ((h . g) f)) (K x))
+pred n f x = extract (n (f, g, h -> ((h . g) f)) (K x))
 pred n f x = extract (n inc const)
 
 value v h = h v

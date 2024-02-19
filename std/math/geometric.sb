@@ -1,0 +1,15 @@
+Geometry n => {
+    basis-vectors = 0..n
+}
+
+Given (Geometry n) implying {basis-vectors} {
+    Vector = Basis (Int in 0..n)
+    Multivector = [(Natural, [Vector])]
+
+    impl Show for Vector {
+        show (Basis i) = ["u", "v", "w", "x", "y", "z"].get i
+    }
+
+    _*_ : Multivector -> Multivector -> Mutlivector
+    filter (i,_ -> i != 0)
+}

@@ -1,0 +1,7 @@
+public {Natural}
+
+
+// => is implication.
+(i: impl {Integer + Given {i >= 0}} )
+    => i impl Natural
+

@@ -1,3 +1,0 @@
-// Abstract datatypes
-
-ADT (n: Integer) (t: (Integer -> (Type 0)))

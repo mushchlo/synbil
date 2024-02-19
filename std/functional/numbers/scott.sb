@@ -1,27 +1,14 @@
-data Bit = 0 Bit | 1 Bit | E
+// data Bit = 0 Bit | 1 Bit | E
+
+match 
 
 0 x = \o, i, e -> (o x)
 1 x = \o, i, e -> (i x)
 E = \o, i, e -> e
 
 
-// UFCS
-// a.b = b a
-a.b = b a 
-
-// 
-
 
 // 0.0.1.E = "001" big-endian, so 4
-
-succ (x: Bit^n E) = (x // matching on bit x
-    1 // x = 0
-    (
-        \bits: Bit ^(n-1) E
-            -> 0 (Inc bits)
-    ) // x = 1
-    E // x = E
-)
 succ x = x 1 (0 . Inc) E // shortened
 
 
@@ -39,6 +26,8 @@ square n f x = (n // matching on first bit in n
 add = 
 
 decr (n: Scott) f x = (n
+    (is_penultimate n)
+        (n  {unreachable})
     (// bit is 0
         \rest -> s
     )
@@ -48,6 +37,3 @@ decr (n: Scott) f x = (n
 
 
 
-
-
-type Number = \o, i, e -> ({o|i} x) e

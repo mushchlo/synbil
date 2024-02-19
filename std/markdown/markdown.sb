@@ -1,0 +1,21 @@
+numbers = 0..9 `map` show `map` hd
+punct = [ "[", "]", "(", ")", "!", ">", "-", "="]
+(set-tokens
+    [ '*', '#', '`' ] ++ numbers ++ punct
+)
+htmlify tag body =
+    "<" ++ tag ++ ">"
+        ++ body
+    ++ "</" ++ tag ++ ">"
+
+italic = htmlify "i"
+bold = htmlify "b"
+heading n = htmlify ("h" ++ show n)
+
+// \ is a function modifier. 
+\ `()
+
+* text * = italic text
+_ text _ = italic text
+
+** text __ = 

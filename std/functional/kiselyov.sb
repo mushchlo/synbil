@@ -1,0 +1,239 @@
+// paraphrasing http://www-cs-students.stanford.edu/~blynn/lambda/kiselyov.html
+
+B a b c = a (b c)
+R a b c = b c a
+S a b c = a c (b c)
+
+// Let p, q be combinators.
+// Challenge: we let d be [eta-expanded](link to eta-expansion wiki page) p m times, and q n times.
+// Let m = 3, n = 2.
+// d = (\0, 1, 2 ... n (p 2 1 0)) (\0, 1 ... n (q 1 0))
+// What is d ?
+// Let n |= d denote d eta-expanded n times.
+// 3 |= d = \0, 1, 2 (d 2 1 0)
+//
+// We can restate our problem as follows: 
+// We define Π recursively by:
+//          (0 |= c) Π (0 |= d) =                                 c d
+//      (n + 1 |= c) Π (0 |= d) =              (0 |= R d) Π (n |= c)
+//      (0 |= c) Π (m + 1 |= d) =              (0 |= B c) Π (0 |= d)
+//  (n + 1 |= c) Π (m + 1 |= d) =   n |= (0 |= S Π n |= c) Π m |= d
+
+// We can mechanically check that d = (n |= c) Π (m |= d) is a solution
+
+Lambda = Var 
+// We convert from a lambda calculus term to a debrujin ADT
+Debrujin = 
+
+use Peano.*
+
+debrujin = go [] where
+    go binds = 
+
+Combinator = {B | R | S | K | I | C}
+
+
+// [ _ ; _ ]
+[ {T: Type 0}; {n: Peano} ] = Array (toPeano n) T
+Array n = eta-expand n
+
+Array Z = {unreachable}
+Array (S n) = \v -> (ArrayEl.create v)
+
+
+// How we represent an eta-expansion
+_ |= _ : Peano, CLTerm ->
+(eta-expansions: Peano) |= (expr: CLTerm)
+    = { eta-expansions, expr }
+
+translation Z = 1 |= i
+translation (S e) =
+    let (n |= d) = translation e
+
+    (n + 1) |= (0 |= K Π n |= d)
+translation (λ e) =
+    let (n |= d) = translation e
+    (match n
+        0:   0  |= (K d)
+        else:   n-1 |= d 
+    )
+translation (f @@ x) =
+    let (n |= c) = translation f
+    let (m |= d) = translation x
+
+    max(n, m) |=
+        (n |= c Π m |= d)
+
+
+
+
+
+
+
+
+// Combinatory Logic term
+// @ is apply
+CLTerm c = { LinearTerm [c; n] | CLTerm @ Term }
+
+
+
+
+(0 |= c) Π (0 |= d) = apply c d
+(n |= c) Π (0 |= d) = (0 |= R d) Π (n-1 |= c)
+(0 |= c) Π (m |= d)
+    = (0 |= B c) Π (0 |= d)
+(n |= c) Π (m |= d)
+    let n <@ e = (n-1 |= e)
+    let a = n <@(1 <@S Π n <@c)
+    a Π m <@d
+
+
+
+
+
+
+// Now we complicate it, and make the pi operator fucked up and evil
+// The list item at index k is True when the variable with debrujin index k
+// is used at least once in the term.
+
+([] |= c) Π ([] |= d) = c @ d
+// TODO: should be able to write ([] |= _) Π ([] |= _) = _ @ _
+[] |= c Π [] |= d
+
+
+    (_: [Bool])
+Π (
+    (_: [Bool]) |= (_: CLExpr))
+=
+
+([] |= c)     Π (F, Γ |= d)  = ([] |= c) Π Γ |= d
+(F, Γ |= c)  Π [] |= d       = (Γ |= c) Π [] |= d
+(F, Γ1 |= c) Π (T, Γ2 |= d) = ([])
+(T, Γ1 |= c) Π (F, Γ2 |= d) = ([])
+(F, Γ1 |= c) Π (F, Γ2 |= d) = ([])
+
+
+
+
+
+
+
+
+
+_Π_ : (([Bool], CLExpr), ([Bool], CLExpr)) -> CLExpr
+{
+    use Bool.{True as T, False as F}
+    use CLExpr.*
+
+    [],c   Π [],d   = c@d
+
+    [],c   Π T::h,d = [],B@c  Π h,d
+    [],c   Π F::h,d = [],c    Π h,d
+    T::g,c Π [],d   = [],R@d  Π g,c
+    F::g,c Π [],d   = ([],S   Π g,c) Π [],d
+
+    P gs hs =
+        arg = match gs, hs {
+        T::g, [] -> R
+        F::g,
+        }
+    P [],c T::h,d   = [], B@c      Π    h,d 
+
+// Formerly... more terse, less abstract.
+//  T::g,c Π T::h,d = g,([],S Π g,c) Π h,d
+//  F::g,c Π T::h,d = g,([],B Π g,c) Π h,d
+//  T::g,c Π F::h,d = g,([],C Π g,c) Π h,d
+//  F::g,c Π F::h,d = g,c Π h,d
+// Intermediary combinator, choosing the CL term
+    Q T T = S
+    Q F T = B
+    Q T F = C
+
+    H f a c hd = f,(a Π f,c) Π hd
+    a::g,c Π b::h,d = g,([],(Q a b) Π g,c) Π h,d
+                     = H g (Q a b) c h,d
+
+
+}
+
+zip-with-default d f [] ys       = f d `map` ys
+zip-with-default d f xs []       = flip f d `map` xs
+zip-with-default d f x::xs y;:ys = f x y : zip-with-default d f xs ys
+
+// `f` is the binary version of f. _`_`_ defines this.  
+_`_`_ <A, B> : (A, (A, B) -> C, B) -> C
+a `f` b = f a b
+
+Λ = { Peano | λe | A Λ,Λ }
+
+convert : Λ -> CLExpr 
+convert expr = match expr
+    Z     -> [True], I
+    S e   -> False::g, d where (g, d) = convert expr e
+    λe   -> match (convert e)
+        [],d -> [], K@d
+        T::g,d -> g,d
+        F::g,d -> g,[],K Π g,d
+    A f,x -> (zip-with-default False _or_ gf gx, tf Π tx)
+        where tf@(gf, _) = convert f
+              tx@(gx, _) = convert x
+
+// We introduce combinator T a b = b a.
+CL = {CLExpr | T}
+
+// TODO: type universes are not implemented yet.
+// Eta : Type 0
+
+// var-usages is the number of usages of each variable with
+// debrujin index i in the list
+// TODOOO: link to debrujin index wiki page
+Eta = {var-usages: [Bool], expr: CL}
+
+
+declare _#_ // Two underscores means two parameters
+// type of _#_
+( (_: Eta) # (_: Eta) ) : CL
+
+// definition of _#_
+// scoped bc we do some gross imports lke CL.I as I
+{
+    use CL.I
+}
+
+
+([] | F::_) # T::[],I = c
+/* formerly the more complex
+[],c       #     T::[],I  = c
+F::g,c     #     T::[],I  = c */
+
+
+[],c       #     T::h,d   = [],CL.B @c   # h,d
+[T],I      #     F::h,d   = [],CL.T      # h,d
+
+[],c       #     [],d     = c    @d
+[T],CL.I   #     [],d     = CL.T @d
+([] | T::_),
+
+[],c       #     F::h,d   = [],c               # h,d
+T::g,c     #     [],d     = [],CL.R @d         # g,c
+
+/* formerly:
+F::g,c     #     [],d     = g,c # [],d
+F::g,c     #     F::h,d   = g,c # h,d */
+// now:
+F::g,c  #  Q::h,d
+    where Q = F | nil
+    = g,c # h,d
+
+// formerly the less abstract and more repetitive:
+/*
+T::g,c   #     T::h,d   = g,([],CL.S # g,c)   # h,d
+T::g,c   #     F::h,d   = g,([],CL.C # g,c)   # h,d
+F::g,c   #     T::h,d   = g,([],CL.B # g,c)   # h,d */
+// now:
+a::g,c # b::h,d =
+    r = match a,b
+        T,T -> CL.S
+        F,T -> CL.B
+        T,F -> CL.C
+    g,([], (r # g,c))  #  h,d

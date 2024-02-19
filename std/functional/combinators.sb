@@ -1,4 +1,4 @@
-// All the nice and familiar combinators :)
+// All the nice and familiar combinators :D
 
 
 // SKI
@@ -6,12 +6,15 @@ i x   = x
 k x _ = x
 s x y z = x z (y z)
 
+// Omega
+o = (f -> f f) (f -> f f)
+
+
 z f = (
     (\x -> (f (\v -> x x v)))
     (\x -> (f (\v -> x x v)))
 )
 
-omega f = f f
 Y = TODOO
 
 

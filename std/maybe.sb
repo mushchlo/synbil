@@ -1,0 +1,83 @@
+Maybe <T> = Some T | None
+Option = Maybe
+
+is_none <T> : Maybe T -> Bool
+is_none None = true
+is_none _    = false
+
+is_some <T> : Maybe T -> Bool
+is_some (Some _) = true
+is_some _    = false
+
+// returns true if the maybe is a some and the value inside it matches a predicate
+is_some_and <T> : Maybe T, (T -> Bool) -> Bool
+is_some_and (Some v) p = p v
+
+// Pattern matching can be done on references
+as_ref <T> : &(Maybe T) -> Maybe &T
+as_ref (Some (v: T)) = Some &v
+as_ref None = None
+
+// Pattern matching can be done on references
+as_mut <T> : mut& (Maybe T) -> Maybe (mut& T)
+as_mut (Some (v: T)) = Some mut& v
+as_mut None = None
+
+unwrap <T> : Maybe T -> (T | Never)
+unwrap None : Never
+unwrap (Some (_: T)) : T
+unwrap (Some v) = v
+
+unwrap_or <T> : Maybe T, T -> T
+unwrap_or (Some v) _   = v
+unwrap_or None default = default
+
+unwrap_or_else (Some )
+
+
+inspect (Some v) f = (sequential (f v) (Some v))
+inspect None f     = None
+
+
+_ and _ <T, U> : Maybe T, Maybe U -> Maybe U
+(Some v) and (Some v2) = v2
+None and _ = None
+_ and None = None
+
+(Some v) and-then f = f v
+None     and-then f = None
+
+(Some v) or _ = Some v
+_ or (Some v) = Some v
+None or None  = None 
+
+
+
+(Some v) or-else _ = 
+_ None _ = 
+
+_ (Some v) _ = 
+_ None _ = 
+
+_ (Some v) _ = 
+_ None _ = 
+
+or (m: Maybe 'T) (n: Maybe 'T) =
+    match m, n
+        (Some v, Some u -> )
+
+
+
+// non-borrowing
+map (m: Maybe 'v) (f: v -> v) =
+    { match m
+        Some v -> Some (f v)
+        None  -> None }
+
+// borrow semantics:
+// Mutable borrows mut& are Unique. Immutable borrows & are non-unique.
+// Mutable borrows can implicitly cast to immutable ones
+map (m: Maybe 'v) (f: &v -> v) =
+    if let (Some mut& v) = m {
+        v = f v
+    }
