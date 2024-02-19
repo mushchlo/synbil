@@ -1,27 +1,0 @@
-Reading package lists...
-Building dependency tree...
-Reading state information...
-libxft-dev is already the newest version (2.3.4-1).
-libxft-dev set to manually installed.
-libxinerama-dev is already the newest version (2:1.1.4-3).
-libxinerama-dev set to manually installed.
-libxrandr-dev is already the newest version (2:1.5.2-1build1).
-libxrandr-dev set to manually installed.
-The following packages were automatically installed and are no longer required:
-  cmake-data dh-elpa-helper docker-scan-plugin libc++1 libc++1-14
-  libc++abi1-14 libjsoncpp25 librhash0 libstd-rust-1.71 libunwind-14
-  python3-cliapp python3-ttystatus
-Use 'sudo apt autoremove' to remove them.
-The following NEW packages will be installed:
-  libxss-dev
-0 upgraded, 1 newly installed, 0 to remove and 48 not upgraded.
-Need to get 12.3 kB of archives.
-After this operation, 54.3 kB of additional disk space will be used.
-Do you want to continue? [Y/n] Get:1 http://us.archive.ubuntu.com/ubuntu jammy/main amd64 libxss-dev amd64 1:1.2.3-1build2 [12.3 kB]
-Fetched 12.3 kB in 0s (77.4 kB/s)
-Selecting previously unselected package libxss-dev:amd64.
-(Reading database ... (Reading database ... 5%(Reading database ... 10%(Reading database ... 15%(Reading database ... 20%(Reading database ... 25%(Reading database ... 30%(Reading database ... 35%(Reading database ... 40%(Reading database ... 45%(Reading database ... 50%(Reading database ... 55%(Reading database ... 60%(Reading database ... 65%(Reading database ... 70%(Reading database ... 75%(Reading database ... 80%(Reading database ... 85%(Reading database ... 90%(Reading database ... 95%(Reading database ... 100%(Reading database ... 391353 files and directories currently installed.)
-Preparing to unpack .../libxss-dev_1%3a1.2.3-1build2_amd64.deb ...
-Unpacking libxss-dev:amd64 (1:1.2.3-1build2) ...
-Setting up libxss-dev:amd64 (1:1.2.3-1build2) ...
-Processing triggers for man-db (2.10.2-1) ...
